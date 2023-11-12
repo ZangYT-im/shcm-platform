@@ -1,6 +1,8 @@
 package com.shcm.service.impl;
 
 import cn.hutool.core.bean.BeanUtil;
+import cn.hutool.core.bean.copier.CopyOptions;
+import cn.hutool.core.lang.UUID;
 import cn.hutool.core.util.RandomUtil;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.shcm.dto.LoginFormDTO;
@@ -9,19 +11,29 @@ import com.shcm.dto.UserDTO;
 import com.shcm.entity.User;
 import com.shcm.mapper.UserMapper;
 import com.shcm.service.IUserService;
+import com.shcm.utils.RedisConstants;
 import com.shcm.utils.RegexUtils;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.BeanUtils;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 
+import javax.annotation.Resource;
 import javax.servlet.http.HttpSession;
 
+import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.TimeUnit;
+
+import static com.shcm.utils.RedisConstants.*;
 import static com.shcm.utils.SystemConstants.USER_NICK_NAME_PREFIX;
 
 
 @Slf4j
 @Service
 public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IUserService {
+
+    @Resource
+    private StringRedisTemplate stringRedisTemplate;
 
     @Override
     public Result sendCode(String phone, HttpSession session) {
@@ -33,9 +45,10 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
         // 3.符合，生成验证码
         String code = RandomUtil.randomNumbers(6);
 
-        // 4.保存验证码到 session
+        // 4.保存验证码到 redis
         //验证码默认666666,演示方便
-        session.setAttribute("code","666666");
+        stringRedisTemplate.opsForValue().set( LOGIN_CODE_KEY + phone,"666666",LOGIN_CODE_TTL , TimeUnit.MINUTES);//set key ex 120
+//        session.setAttribute("code","666666");
         // 5.发送验证码
         log.debug("发送短信验证码成功，验证码：{}", code);
         // 返回ok
@@ -50,10 +63,10 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
             // 2.如果不符合，返回错误信息
             return Result.fail("手机号格式错误！");
         }
-        // 3.校验验证码
-        Object cacheCode = session.getAttribute("code");
+        // 3.校验验证码,从redis获取
+        String cacheCode = stringRedisTemplate.opsForValue().get(LOGIN_CODE_KEY + phone);
         String code = loginForm.getCode();
-        if(cacheCode == null || !cacheCode.toString().equals(code)){
+        if(cacheCode == null || !cacheCode.equals(code)){
             //3.不一致，报错
             return Result.fail("验证码错误");
         }
@@ -65,7 +78,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
             //不存在，则创建
             user =  createUserWithPhone(phone);
         }
-        //7.保存用户信息到session中
+        //7.保存用户信息到redis中
         /**
          * 我们通过浏览器观察到此时用户的全部信息都在，
          * 这样极为不靠谱，所以我们应当在返回用户信息之前，
@@ -73,9 +86,33 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
          * 这个UserDto对象就没有敏感信息了，我们在返回前，将有用户敏感信息的
          * User对象转化成没有敏感信息的UserDto对象，那么就能够避免这个尴尬的问题了
          * */
-        session.setAttribute("user", BeanUtil.copyProperties(user, UserDTO.class));
 
-        return Result.ok();
+        // 7.1.随机生成token，作为登录令牌
+        String token = UUID.randomUUID().toString(true);//不带下划线值
+        // 7.2.将User对象转为HashMap存储
+        UserDTO userDTO = BeanUtil.copyProperties(user, UserDTO.class);
+
+        /**
+        * 这里原因是StringRedisTemplate里面操作的必须都是String，不能是java中的实体类
+         * 也就是userMap中的key和value都是String
+        * */
+        /*
+         * 把user转换为map，一个属性对应一个key
+         * */
+        Map<String, Object> userMap = BeanUtil.beanToMap(userDTO, new HashMap<>(),
+                CopyOptions.create()
+                        .setIgnoreNullValue(true)
+                        .setFieldValueEditor((fieldName, fieldValue) -> fieldValue.toString()));
+        // 7.3.存储
+        String tokenKey = LOGIN_USER_KEY + token;
+        stringRedisTemplate.opsForHash().putAll(tokenKey, userMap);
+        // 7.4.设置token有效期(session有效期是30min)
+        stringRedisTemplate.expire(tokenKey, LOGIN_USER_TTL, TimeUnit.MINUTES);
+
+
+//        session.setAttribute("user", BeanUtil.copyProperties(user, UserDTO.class));
+
+        return Result.ok(token);
     }
 
     private User createUserWithPhone(String phone) {
