@@ -3,9 +3,11 @@ package com.shcm.controller;
 
 import com.shcm.dto.LoginFormDTO;
 import com.shcm.dto.Result;
+import com.shcm.dto.UserDTO;
 import com.shcm.entity.UserInfo;
 import com.shcm.service.IUserInfoService;
 import com.shcm.service.IUserService;
+import com.shcm.utils.UserHolder;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 
@@ -55,8 +57,8 @@ public class UserController {
 
     @GetMapping("/me")
     public Result me(){
-        // TODO 获取当前登录的用户并返回
-        return Result.fail("功能未完成");
+        UserDTO user = UserHolder.getUser();
+        return Result.ok(user);
     }
 
     @GetMapping("/info/{id}")

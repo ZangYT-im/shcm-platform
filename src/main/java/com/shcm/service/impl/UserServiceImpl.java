@@ -1,14 +1,17 @@
 package com.shcm.service.impl;
 
+import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.util.RandomUtil;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.shcm.dto.LoginFormDTO;
 import com.shcm.dto.Result;
+import com.shcm.dto.UserDTO;
 import com.shcm.entity.User;
 import com.shcm.mapper.UserMapper;
 import com.shcm.service.IUserService;
 import com.shcm.utils.RegexUtils;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 
 import javax.servlet.http.HttpSession;
@@ -63,7 +66,14 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
             user =  createUserWithPhone(phone);
         }
         //7.保存用户信息到session中
-        session.setAttribute("user",user);
+        /**
+         * 我们通过浏览器观察到此时用户的全部信息都在，
+         * 这样极为不靠谱，所以我们应当在返回用户信息之前，
+         * 将用户的敏感信息进行隐藏，采用的核心思路就是书写一个UserDto对象，
+         * 这个UserDto对象就没有敏感信息了，我们在返回前，将有用户敏感信息的
+         * User对象转化成没有敏感信息的UserDto对象，那么就能够避免这个尴尬的问题了
+         * */
+        session.setAttribute("user", BeanUtil.copyProperties(user, UserDTO.class));
 
         return Result.ok();
     }
