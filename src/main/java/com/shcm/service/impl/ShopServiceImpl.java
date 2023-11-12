@@ -16,8 +16,7 @@ import javax.annotation.Resource;
 
 import java.util.concurrent.TimeUnit;
 
-import static com.shcm.utils.RedisConstants.CACHE_SHOP_KEY;
-import static com.shcm.utils.RedisConstants.CACHE_SHOP_TTL;
+import static com.shcm.utils.RedisConstants.*;
 
 
 @Service
@@ -34,15 +33,27 @@ public class ShopServiceImpl extends ServiceImpl<ShopMapper, Shop> implements IS
         String shopJson = stringRedisTemplate.opsForValue().get(key);
 
         // 2.判断是否存在
-        if (StrUtil.isNotBlank(shopJson)) {
+        if (StrUtil.isNotBlank(shopJson)) {//isNotBlank只有是有实际字符才是true;null和空字符串都是false
             // 3.存在,直接返回
             Shop shop = JSONUtil.toBean(shopJson, Shop.class);
             return Result.ok(shop);
         }
-        // 4.不存在,根据id查询数据库
+        /**
+         * 这里是解决缓存穿透的一个方案,如果是null,就把空字符串暂时先缓存进redis
+         * */
+        // 判断命中的是否是空值
+        if (shopJson != null){//如果缓存的是空字符串 相当于.equals("");
+            //返回错误信息
+            return Result.fail("店铺信息不存在!");
+        }
+        // 4.不存在,根据id向数据库查询
         Shop shop = getById(id);
         // 5.不存在,返回错误
-        if (shop == null) {
+
+        if (shop == null) {//说明该数据不在数据库里
+            //将空值写入redis
+            stringRedisTemplate.opsForValue().set(key,"",CACHE_NULL_TTL,TimeUnit.MINUTES);
+            //返回错误信息
             return Result.fail("店铺不存在");
         }
         // 6.存在,写入Redis
