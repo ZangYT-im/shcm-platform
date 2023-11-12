@@ -10,10 +10,14 @@ import com.shcm.service.IShopService;
 import lombok.val;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
 
+import java.util.concurrent.TimeUnit;
+
 import static com.shcm.utils.RedisConstants.CACHE_SHOP_KEY;
+import static com.shcm.utils.RedisConstants.CACHE_SHOP_TTL;
 
 
 @Service
@@ -42,9 +46,28 @@ public class ShopServiceImpl extends ServiceImpl<ShopMapper, Shop> implements IS
             return Result.fail("店铺不存在");
         }
         // 6.存在,写入Redis
-        stringRedisTemplate.opsForValue().set(key, JSONUtil.toJsonStr(shop));
+        stringRedisTemplate.opsForValue().set(key, JSONUtil.toJsonStr(shop),CACHE_SHOP_TTL, TimeUnit.MINUTES);
         // 7.返回
         return Result.ok(shop);
 
+    }
+
+    /**
+     * 这里因为是一个单体项目,
+     * 可以直接加事务保证原子性,
+     * 如果是个分布式的就会麻烦一点
+     * */
+    @Override
+    @Transactional
+    public Result update(Shop shop) {
+        Long id = shop.getId();
+        if (id == null){
+            return  Result.fail("店铺id不能为空");
+        }
+        // 1.更新数据库
+        updateById(shop);
+        // 2.删除缓存
+        stringRedisTemplate.delete(CACHE_SHOP_KEY + shop.getId());
+        return null;
     }
 }
