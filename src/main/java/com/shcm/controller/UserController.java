@@ -39,10 +39,8 @@ public class UserController {
      */
     @PostMapping("/login")
     public Result login(@RequestBody LoginFormDTO loginForm, HttpSession session){
-        // TODO 实现登录功能
         // 1.校验手机号
-
-        return Result.fail("功能未完成");
+        return userService.login(loginForm,session);
     }
 
     /**
