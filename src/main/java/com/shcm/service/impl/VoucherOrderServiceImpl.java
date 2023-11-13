@@ -8,8 +8,10 @@ import com.shcm.mapper.VoucherOrderMapper;
 import com.shcm.service.ISeckillVoucherService;
 import com.shcm.service.IVoucherOrderService;
 import com.shcm.utils.RedisIdWorker;
+import com.shcm.utils.SimpleRedisLock;
 import com.shcm.utils.UserHolder;
 import org.springframework.aop.framework.AopContext;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -25,6 +27,9 @@ public class VoucherOrderServiceImpl extends ServiceImpl<VoucherOrderMapper, Vou
 
     @Resource
     private RedisIdWorker redisIdWorker;
+
+    @Resource
+    private StringRedisTemplate stringRedisTemplate;
 
 
     @Override
@@ -58,11 +63,39 @@ public class VoucherOrderServiceImpl extends ServiceImpl<VoucherOrderMapper, Vou
          * */
         Long userId = UserHolder.getUser().getId();
         ////intern代表去字符串常量池里去找，因为toString底层是new String()
-        synchronized (userId.toString().intern()) {
+
+
+        /**
+         * 通过手动实现的redis分布式锁来实现
+         * */
+        // 创建redis锁对象
+        SimpleRedisLock lock = new SimpleRedisLock("order:" + userId, stringRedisTemplate);
+        //获取锁
+        boolean isLock = lock.tryLock(1200);
+        //判断获取锁是否成功
+        if (!isLock){
+            //获取锁失败，返回错误或重试
+            return Result.fail("一个人只允许一下单，不允许重复下单");
+        }
+        try {
             // 获取代理对象（事务）
             IVoucherOrderService proxy = (IVoucherOrderService) AopContext.currentProxy();
             return proxy.creatVoucherOrder(voucherId);
+        }finally {
+            //释放锁
+            lock.unlock();
         }
+
+
+
+        /**
+         * 通过syn关键字来实现，只能保证单体，不能保证分布式情况下线程安全
+         * */
+//        synchronized (userId.toString().intern()) {
+//            // 获取代理对象（事务）
+//            IVoucherOrderService proxy = (IVoucherOrderService) AopContext.currentProxy();
+//            return proxy.creatVoucherOrder(voucherId);
+//        }
     }
 
     @Transactional
