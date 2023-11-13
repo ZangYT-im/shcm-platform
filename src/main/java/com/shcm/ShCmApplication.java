@@ -4,6 +4,7 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 import org.mybatis.spring.annotation.MapperScan;
+import org.springframework.context.annotation.EnableAspectJAutoProxy;
 
 /**
  * <p>
@@ -16,6 +17,7 @@ import org.mybatis.spring.annotation.MapperScan;
 
 @MapperScan("com.shcm.mapper")
 @SpringBootApplication
+@EnableAspectJAutoProxy(exposeProxy = true)//暴露动态代理的对象
 public class ShCmApplication {
     public static void main(String[] args) {
         SpringApplication.run(ShCmApplication.class,args);
