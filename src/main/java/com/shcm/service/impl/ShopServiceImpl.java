@@ -9,6 +9,7 @@ import com.shcm.dto.Result;
 import com.shcm.entity.Shop;
 import com.shcm.mapper.ShopMapper;
 import com.shcm.service.IShopService;
+import com.shcm.utils.CacheClient;
 import com.shcm.utils.RedisData;
 import lombok.val;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -31,6 +32,9 @@ public class ShopServiceImpl extends ServiceImpl<ShopMapper, Shop> implements IS
     @Resource
     private StringRedisTemplate stringRedisTemplate;
 
+    @Resource
+    private CacheClient cacheClient;
+
     //缓存重建需要用的线程池
     private static final ExecutorService CACHE_REBUILD_EXECUTOR = Executors.newFixedThreadPool(10);
 
@@ -46,8 +50,16 @@ public class ShopServiceImpl extends ServiceImpl<ShopMapper, Shop> implements IS
 //            return Result.fail("店铺不存在");
 //        }
 
-        //用逻辑过期解决缓存击穿问题
-        Shop shop = queryWithLogicalExpire(id);
+//        //用逻辑过期解决缓存击穿问题
+//        Shop shop = queryWithLogicalExpire(id);
+
+//        //用封装的方法解决缓存穿透问题
+//        Shop shop =  cacheClient.
+//                queryWithPassThrough(CACHE_SHOP_KEY,id,Shop.class,this::getById,CACHE_SHOP_TTL,TimeUnit.MINUTES);
+
+        //用封装的方法采用逻辑过期解决缓存击穿问题
+        Shop shop = cacheClient.
+                queryWithLogicalExpire(CACHE_SHOP_KEY,id,Shop.class,this::getById,CACHE_SHOP_TTL,TimeUnit.MINUTES);
         return Result.ok(shop);
     }
 
