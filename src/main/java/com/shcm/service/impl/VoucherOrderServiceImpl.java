@@ -26,8 +26,6 @@ public class VoucherOrderServiceImpl extends ServiceImpl<VoucherOrderMapper, Vou
     private RedisIdWorker redisIdWorker;
 
 
-
-
     @Override
     @Transactional
     public Result seckillVoucher(Long voucherId) {
@@ -51,7 +49,7 @@ public class VoucherOrderServiceImpl extends ServiceImpl<VoucherOrderMapper, Vou
         //5，扣减库存
         boolean success = seckillVoucherService.update()
                 .setSql("stock = stock -1")
-                .eq("voucher_id", voucherId).update();
+                .eq("voucher_id", voucherId).gt("stock",0).update();//where id = ? and stock = ? 乐观锁cas判断
         if (!success) {
             //扣减库存
             return Result.fail("库存不足！");
