@@ -10,6 +10,8 @@ import com.shcm.service.IVoucherOrderService;
 import com.shcm.utils.RedisIdWorker;
 import com.shcm.utils.SimpleRedisLock;
 import com.shcm.utils.UserHolder;
+import org.redisson.api.RLock;
+import org.redisson.api.RedissonClient;
 import org.springframework.aop.framework.AopContext;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
@@ -30,6 +32,9 @@ public class VoucherOrderServiceImpl extends ServiceImpl<VoucherOrderMapper, Vou
 
     @Resource
     private StringRedisTemplate stringRedisTemplate;
+
+    @Resource
+    private RedissonClient redissonClient;
 
 
     @Override
@@ -66,12 +71,21 @@ public class VoucherOrderServiceImpl extends ServiceImpl<VoucherOrderMapper, Vou
 
 
         /**
+         * 采用redisson分布式锁
+         *
+         * */
+        RLock lock = redissonClient.getLock("lock:order:" + userId);
+        boolean isLock = lock.tryLock();//无参就是失败后不等待
+
+
+        /**
          * 通过手动实现的redis分布式锁来实现
          * */
-        // 创建redis锁对象
-        SimpleRedisLock lock = new SimpleRedisLock("order:" + userId, stringRedisTemplate);
+           // 创建redis锁对象
+//        SimpleRedisLock lock = new SimpleRedisLock("order:" + userId, stringRedisTemplate);
+
         //获取锁
-        boolean isLock = lock.tryLock(1200);//设置一个时间超时自动释放，防止锁不能够正常手动释放
+//        boolean isLock = lock.tryLock(1200);//设置一个时间超时自动释放，防止锁不能够正常手动释放
         //判断获取锁是否成功
         if (!isLock){
             //获取锁失败，返回错误或重试
@@ -85,6 +99,9 @@ public class VoucherOrderServiceImpl extends ServiceImpl<VoucherOrderMapper, Vou
             //释放锁
             lock.unlock();
         }
+
+
+     
 
 
 
