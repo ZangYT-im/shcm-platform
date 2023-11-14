@@ -7,11 +7,14 @@ import com.shcm.entity.Voucher;
 import com.shcm.mapper.VoucherMapper;
 import com.shcm.service.ISeckillVoucherService;
 import com.shcm.service.IVoucherService;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
 import java.util.List;
+
+import static com.shcm.utils.RedisConstants.SECKILL_STOCK_KEY;
 
 
 @Service
@@ -19,6 +22,9 @@ public class VoucherServiceImpl extends ServiceImpl<VoucherMapper, Voucher> impl
 
     @Resource
     private ISeckillVoucherService seckillVoucherService;
+
+    @Resource
+    StringRedisTemplate stringRedisTemplate;
 
     @Override
     public Result queryVoucherOfShop(Long shopId) {
@@ -40,5 +46,11 @@ public class VoucherServiceImpl extends ServiceImpl<VoucherMapper, Voucher> impl
         seckillVoucher.setBeginTime(voucher.getBeginTime());
         seckillVoucher.setEndTime(voucher.getEndTime());
         seckillVoucherService.save(seckillVoucher);
+
+        //保存秒杀库存到redis中
+        /**
+         * 这里不设置过期时间，可以永久保存，之后需要移除时手动删除
+         * */
+        stringRedisTemplate .opsForValue().set(SECKILL_STOCK_KEY + voucher.getId(),voucher.getStock().toString());
     }
 }
