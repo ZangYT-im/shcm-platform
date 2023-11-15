@@ -90,9 +90,20 @@ public class UserController {
         return Result.ok(userDTO);
     }
 
+    /**
+     * 进行签到
+     * */
     @PostMapping("/sign")
     public Result sign(){
         return userService.sign();
+    }
+
+    /**
+     * 统计连续签到的天数
+     * */
+    @GetMapping("/sign/count")
+    public Result signCount(){
+        return userService.signCount();
     }
 
 }
