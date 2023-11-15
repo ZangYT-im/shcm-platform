@@ -2,6 +2,7 @@ package com.shcm.service.impl;
 
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.util.BooleanUtil;
+import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.shcm.dto.Result;
@@ -73,8 +74,6 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements IB
 
     private void isBlogLiked(Blog blog) {
 
-
-
         // 1.获取登录用户
         UserDTO user = UserHolder.getUser();
         if (user == null){
@@ -126,8 +125,10 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements IB
         }
         // 2.解析出其中的用户id
         List<Long> ids = top5.stream().map(Long::valueOf).collect(Collectors.toList());
-        // 3.根据用户id查询用
-        List<UserDTO> userDTOS = userService.listByIds(ids)
+        String idStr = StrUtil.join(",",ids);
+        // 3.根据用户id查询用where id in （5，1） order by field（id,5,1）,last:在原有的sql语句的最后拼接
+        List<UserDTO> userDTOS = userService.query()
+                .in("id",ids).last("ORDER BY FIELD(id," + idStr + ")").list()
                 .stream()
                 .map(user -> BeanUtil.copyProperties(user, UserDTO.class))
                 .collect(Collectors.toList());
