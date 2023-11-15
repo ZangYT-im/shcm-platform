@@ -393,3 +393,7 @@ public class VoucherOrderServiceImpl extends ServiceImpl<VoucherOrderMapper, Vou
 
     }
 }
+/**
+ * 创建消费者组的
+ * XGROUP CREATE stream.orders g1 0 MKSTREAM
+* */

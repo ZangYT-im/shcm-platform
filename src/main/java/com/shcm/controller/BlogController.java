@@ -1,6 +1,7 @@
 package com.shcm.controller;
 
 
+import cn.hutool.extra.template.engine.freemarker.FreemarkerTemplate;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.shcm.dto.Result;
 import com.shcm.dto.UserDTO;
@@ -22,11 +23,15 @@ public class BlogController {
 
     @Resource
     private IBlogService blogService;
-    @Resource
-    private IUserService userService;
+
 
     @PostMapping
     public Result saveBlog(@RequestBody Blog blog) {
+
+        //todo 需要判断shopid不为空
+        if (blog.getTitle() == null || blog.getTitle().equals("")) {
+            return Result.fail("请输入标题");
+        }
         // 获取登录用户
         UserDTO user = UserHolder.getUser();
         blog.setUserId(user.getId());
@@ -58,19 +63,13 @@ public class BlogController {
 
     @GetMapping("/hot")
     public Result queryHotBlog(@RequestParam(value = "current", defaultValue = "1") Integer current) {
-        // 根据用户查询
-        Page<Blog> page = blogService.query()
-                .orderByDesc("liked")
-                .page(new Page<>(current, SystemConstants.MAX_PAGE_SIZE));
-        // 获取当前页数据
-        List<Blog> records = page.getRecords();
-        // 查询用户
-        records.forEach(blog ->{
-            Long userId = blog.getUserId();
-            User user = userService.getById(userId);
-            blog.setName(user.getNickName());
-            blog.setIcon(user.getIcon());
-        });
-        return Result.ok(records);
+
+        return blogService.queryHotBlog(current);
+    }
+
+    @GetMapping("/{id}")
+    public Result queryBlogById(@PathVariable("id") Long id){
+
+        return blogService.queryBlogById(id);
     }
 }
