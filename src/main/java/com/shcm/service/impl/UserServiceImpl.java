@@ -87,6 +87,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
          * User对象转化成没有敏感信息的UserDto对象，那么就能够避免这个尴尬的问题了
          * */
 
+        //todo 判断一下用户在redis里面有没有，防止重复放入token
         // 7.1.随机生成token，作为登录令牌
         String token = UUID.randomUUID().toString(true);//不带下划线值
         // 7.2.将User对象转为HashMap存储
