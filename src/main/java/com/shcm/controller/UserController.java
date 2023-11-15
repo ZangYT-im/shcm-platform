@@ -1,9 +1,11 @@
 package com.shcm.controller;
 
 
+import cn.hutool.core.bean.BeanUtil;
 import com.shcm.dto.LoginFormDTO;
 import com.shcm.dto.Result;
 import com.shcm.dto.UserDTO;
+import com.shcm.entity.User;
 import com.shcm.entity.UserInfo;
 import com.shcm.service.IUserInfoService;
 import com.shcm.service.IUserService;
@@ -74,4 +76,18 @@ public class UserController {
         // 返回
         return Result.ok(info);
     }
+
+    // UserController 根据id查询用户
+    @GetMapping("/{id}")
+    public Result queryUserById(@PathVariable("id") Long userId){
+        // 查询详情
+        User user = userService.getById(userId);
+        if (user == null) {
+            return Result.ok();
+        }
+        UserDTO userDTO = BeanUtil.copyProperties(user, UserDTO.class);
+        // 返回
+        return Result.ok(userDTO);
+    }
+
 }

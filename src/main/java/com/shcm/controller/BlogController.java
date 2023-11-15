@@ -1,6 +1,7 @@
 package com.shcm.controller;
 
 
+import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.extra.template.engine.freemarker.FreemarkerTemplate;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.shcm.dto.Result;
@@ -75,5 +76,19 @@ public class BlogController {
     @GetMapping("/likes/{id}")
     public Result queryBlogLikes(@PathVariable("id") Long id){
         return blogService.queryBlogLikes(id);
+    }
+
+
+    // BlogController  根据id查询博主的探店笔记
+    @GetMapping("/of/user")
+    public Result queryBlogByUserId(
+            @RequestParam(value = "current", defaultValue = "1") Integer current,
+            @RequestParam("id") Long id) {
+        // 根据用户查询
+        Page<Blog> page = blogService.query()
+                .eq("user_id", id).page(new Page<>(current, SystemConstants.MAX_PAGE_SIZE));
+        // 获取当前页数据
+        List<Blog> records = page.getRecords();
+        return Result.ok(records);
     }
 }
