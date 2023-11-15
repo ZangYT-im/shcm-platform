@@ -56,7 +56,6 @@ public class BlogController {
 
     @GetMapping("/hot")
     public Result queryHotBlog(@RequestParam(value = "current", defaultValue = "1") Integer current) {
-
         return blogService.queryHotBlog(current);
     }
 
@@ -84,5 +83,14 @@ public class BlogController {
         // 获取当前页数据
         List<Blog> records = page.getRecords();
         return Result.ok(records);
+    }
+
+    @GetMapping("/of/follow")
+    public Result queryBlogOfFollow(
+            @RequestParam("lastId") Long max,
+            @RequestParam(value = "offset",defaultValue = "0") Integer offset){
+
+        System.out.println(max);
+        return blogService.queryBlogOfFollw(max,offset);
     }
 }
