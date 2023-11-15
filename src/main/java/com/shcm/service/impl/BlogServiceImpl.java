@@ -69,8 +69,8 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements IB
         Long userId = UserHolder.getUser().getId();
         // 2.判断当前用户是否已经点赞
         String key = "blog:liked:" + blog.getId();
-        Boolean isMember = stringRedisTemplate.opsForSet().isMember(key, userId.toString());
-        blog.setIsLike(BooleanUtil.isTrue(isMember));
+        Double score = stringRedisTemplate.opsForZSet().score(key, userId.toString());
+        blog.setIsLike(score != null);
     }
 
     @Override
@@ -79,14 +79,14 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements IB
         Long userId = UserHolder.getUser().getId();
         // 2.判断当前用户是否已经点赞
         String key = "blog:liked:" + id;
-        Boolean isMember = stringRedisTemplate.opsForSet().isMember(key, userId.toString());
-        if (BooleanUtil.isFalse(isMember)){
+        Double score = stringRedisTemplate.opsForZSet().score(key, userId.toString());
+        if (score == null){
             // 3.如果未点赞，可以点赞
             // 3.1数据库点赞数+1
             boolean isSuccess = update().setSql("liked = liked + 1").eq("id", id).update();
-            // 3.2保存用户到redis的SET中
+            // 3.2保存用户到redis的ZSET中 zadd key value score
             if (isSuccess){
-                stringRedisTemplate.opsForSet().add(key,userId.toString());
+                stringRedisTemplate.opsForZSet().add(key,userId.toString(),System.currentTimeMillis());
             }
         }else{
 
@@ -95,7 +95,7 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements IB
             boolean isSuccess = update().setSql("liked = liked - 1").eq("id", id).update();
             // 4.2.把用户从redis的set集合中移除
             if (isSuccess){
-                stringRedisTemplate.opsForSet().remove(key,userId.toString());
+                stringRedisTemplate.opsForZSet().remove(key,userId.toString());
             }
         }
         return Result.ok();
