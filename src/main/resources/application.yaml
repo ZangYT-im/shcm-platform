@@ -5,11 +5,11 @@ spring:
     name: shcm-platform
   datasource:
     driver-class-name: com.mysql.jdbc.Driver
-    url: jdbc:mysql://123.56.92.162:3306/shcm_platform?useSSL=false&serverTimezone=UTC
+    url: jdbc:mysql://sh-cynosdbmysql-grp-33zy53jm.sql.tencentcdb.com:23241/shcm_platform?useSSL=false&serverTimezone=UTC
     username: root
-    password: root
+    password: Sxh501621
   redis:
-    host: 123.56.92.162
+    host: 8.130.98.117
     port: 6379
     password: '123456'
     lettuce:
