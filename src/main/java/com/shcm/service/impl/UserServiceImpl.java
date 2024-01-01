@@ -4,6 +4,7 @@ import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.bean.copier.CopyOptions;
 import cn.hutool.core.lang.UUID;
 import cn.hutool.core.util.RandomUtil;
+import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.shcm.dto.LoginFormDTO;
 import com.shcm.dto.Result;
@@ -20,6 +21,7 @@ import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 
 import java.time.LocalDateTime;
@@ -60,8 +62,12 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
         return Result.ok();
     }
 
+    /**
+     * 采用redis token机制后session就没有用了
+     * */
     @Override
     public Result login(LoginFormDTO loginForm, HttpSession session) {
+
         // 1.校验手机号
         String phone = loginForm.getPhone();
         if (RegexUtils.isPhoneInvalid(phone)) {
@@ -187,5 +193,16 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
             num >>>= 1;
         }
         return Result.ok(count);
+    }
+
+    @Override
+    public Result logout(HttpServletRequest request) {
+        // 1.获取请求头中的token
+        String token = request.getHeader("authorization");
+        // 2.基于TOKEN获取redis中的用户
+        String key  = LOGIN_USER_KEY + token;
+//        在redis中把token移除
+        stringRedisTemplate.delete(key);
+        return Result.ok("退出成功！");
     }
 }
