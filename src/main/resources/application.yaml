@@ -1,13 +1,15 @@
 server:
   port: 8081
 spring:
+  profiles:
+    active: dev
   application:
     name: shcm-platform
-  datasource:
-    driver-class-name: com.mysql.jdbc.Driver
-    url: jdbc:mysql://sh-cynosdbmysql-grp-33zy53jm.sql.tencentcdb.com:23241/shcm_platform?useSSL=false&serverTimezone=UTC
-    username: root
-    password: Sxh501621
+#  datasource:
+#    driver-class-name: com.mysql.jdbc.Driver
+#    url: jdbc:mysql://sh-cynosdbmysql-grp-33zy53jm.sql.tencentcdb.com:23241/shcm_platform?useSSL=false&serverTimezone=UTC
+#    username: root
+#    password: Sxh501621
   redis:
     host: 8.130.98.117
     port: 6379
@@ -25,3 +27,5 @@ mybatis-plus:
 logging:
   level:
     com.shcm: debug
+
+

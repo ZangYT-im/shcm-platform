@@ -152,8 +152,17 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements IB
      * */
     @Override
     public Result saveBlog(Blog blog) {
+
+        if (blog.getShopId() == null || blog.getShopId().equals("")){
+            return Result.fail("请选择关联商户");
+        }
+
         if (blog.getTitle() == null || blog.getTitle().equals("")) {
             return Result.fail("请输入标题");
+        }
+
+        if (blog.getContent() == null || blog.getContent().equals("")){
+            return Result.fail("内容不能为空");
         }
         // 1.获取登录用户
         UserDTO user = UserHolder.getUser();

@@ -1,0 +1,8 @@
+spring:
+  datasource:
+    driver-class-name: com.mysql.jdbc.Driver
+    url: jdbc:mysql://sh-cynosdbmysql-grp-33zy53jm.sql.tencentcdb.com:23241/shcm_platform?useSSL=false&serverTimezone=UTC
+    username: root
+    password: Sxh501621
+
+IMAGE_UPLOAD_DIR: 'D:\workspace\IDEA\shcm-html_nginx-1.18.0\html\shcm-html\imgs'
