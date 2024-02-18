@@ -14,7 +14,10 @@ public class SystemConstants {
     public static String IMAGE_UPLOAD_DIR;
 
     public static final String USER_NICK_NAME_PREFIX = "user_";
-    public static final int DEFAULT_PAGE_SIZE = 5;
+
+
+    //todo 這裏應該做成滾動刷新
+    public static final int DEFAULT_PAGE_SIZE = 999;
 
     //todo 這裏應該做成滾動刷新
     //主頁博客查詢時的最大數量

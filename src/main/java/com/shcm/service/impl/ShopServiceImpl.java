@@ -48,28 +48,39 @@ public class ShopServiceImpl extends ServiceImpl<ShopMapper, Shop> implements IS
 
     @Override
     public Result queryById(Long id) {
+        System.out.println("6666666666666666666666");
 
         //缓存穿透
 //        Shop shop = queryWithPassThrough(id);
 
-        //用互斥锁解决缓存击穿,包含了缓存穿透
-//        Shop shop = queryWithMutex(id);
-//        if (shop == null){
-//            return Result.fail("店铺不存在");
-//        }
+        //-----------------------用互斥锁解决缓存击穿,包含了缓存穿透----------------
+        Shop shop = queryWithMutex(id);
+        if (shop == null){
+            return Result.fail("店铺不存在");
+        }
+        //-----------------------用互斥锁解决缓存击穿,包含了缓存穿透END----------------
 
-//        //用逻辑过期解决缓存击穿问题
+
+        //-----------------------用逻辑过期解决缓存击穿问题----------------
 //        Shop shop = queryWithLogicalExpire(id);
+        //-----------------------用逻辑过期解决缓存击穿问题END----------------
 
-//        //用封装的方法解决缓存穿透问题
+
+
+        //-----------------------用封装的方法解决缓存穿透问题-----------------------
 //        Shop shop =  cacheClient.
 //                queryWithPassThrough(CACHE_SHOP_KEY,id,Shop.class,this::getById,CACHE_SHOP_TTL,TimeUnit.MINUTES);
+        //-----------------------用封装的方法解决缓存穿透问题END-----------------------
 
-        //用封装的方法采用逻辑过期解决缓存击穿问题
-        Shop shop = cacheClient.
-                queryWithLogicalExpire(CACHE_SHOP_KEY,id,Shop.class,this::getById,CACHE_SHOP_TTL,TimeUnit.MINUTES);
+
+        //-----------------------用封装的方法采用逻辑过期解决缓存击穿问题-----------------------
+//        Shop shop = cacheClient.
+//                queryWithLogicalExpire(CACHE_SHOP_KEY,id,Shop.class,this::getById,CACHE_SHOP_TTL,TimeUnit.MINUTES);
+        //-----------------------用封装的方法采用逻辑过期解决缓存击穿问题END-----------------------
+
         return Result.ok(shop);
     }
+
 
     public Shop queryWithLogicalExpire(Long id) {
         String key = CACHE_SHOP_KEY + id;
