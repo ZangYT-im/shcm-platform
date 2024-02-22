@@ -37,5 +37,6 @@ public class ConstantPropertiesUtils implements InitializingBean {
         ACCESS_KEY_SECRET = keySecret;
         BUCKET_NAME = bucketName;
 //        FILE_HOST = fileHost;
+
     }
 }
