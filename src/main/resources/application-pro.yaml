@@ -1,1 +1,19 @@
-IMAGE_UPLOAD_DIR: 'D:\workspace\IDEA\shcm-html_nginx-1.18.0\html\shcm-html\imgs'
+spring:
+  datasource:
+    driver-class-name: com.mysql.jdbc.Driver
+    url: jdbc:mysql:/xx-grp-33zy53jm.sql.tencentcdb.com:23241/shcm_platform?useSSL=false&serverTimezone=UTC
+    username: root
+    password: xx
+  redis:
+    host: 8.1xx
+    port: 6379
+    password: '123456'
+    lettuce:
+      pool:
+        max-active: 10
+        max-idle: 10
+        min-idle: 1
+        time-between-eviction-runs: 10s
+env:
+  flag: pro
+IMAGE_UPLOAD_DIR: '/www/server/nginx/html/shcm-html/imgs'

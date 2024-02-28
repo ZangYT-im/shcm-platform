@@ -24,8 +24,14 @@ public class UploadController {
             String originalFilename = image.getOriginalFilename();
             // 生成新文件名
             String fileName = createNewFileName(originalFilename);
+
             // 保存文件
-            image.transferTo(new File(SystemConstants.IMAGE_UPLOAD_DIR, fileName));
+            log.info("系统图片上传路径：" + SystemConstants.IMAGE_UPLOAD_DIR);
+            File file = new File(SystemConstants.IMAGE_UPLOAD_DIR, fileName);
+            log.info("图片上传绝对路径：" + file.getAbsolutePath());
+
+
+            image.transferTo(file);
             // 返回结果
             log.debug("文件上传成功，{}", fileName);
             return Result.ok(fileName);

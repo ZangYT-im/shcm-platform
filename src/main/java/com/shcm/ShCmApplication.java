@@ -1,5 +1,6 @@
 package com.shcm;
 
+import com.shcm.utils.EnvConfig;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
@@ -22,5 +23,6 @@ public class ShCmApplication {
     public static void main(String[] args) {
         SpringApplication.run(ShCmApplication.class,args);
         System.out.println("项目启动成功~");
+        System.out.println("当前环境：" +  EnvConfig.getEnvFlag());
     }
 }
