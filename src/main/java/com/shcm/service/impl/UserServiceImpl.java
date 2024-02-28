@@ -54,7 +54,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
 
         // 4.保存验证码到 redis
         //验证码默认666666,演示方便
-        stringRedisTemplate.opsForValue().set( LOGIN_CODE_KEY + phone,"666666",LOGIN_CODE_TTL , TimeUnit.MINUTES);//set key ex 120
+        stringRedisTemplate.opsForValue().set( LOGIN_CODE_KEY + phone,"123456",LOGIN_CODE_TTL , TimeUnit.MINUTES);//set key ex 120
 //        session.setAttribute("code","666666");
         // 5.发送验证码
         log.debug("发送短信验证码成功，验证码：{}", code);
