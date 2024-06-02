@@ -38,36 +38,40 @@ public class UserController {
     @PostMapping("code")
     public Result sendCode(@RequestParam("phone") String phone, HttpSession session) {
         // 发送短信验证码并保存验证码
-        return userService.sendCode(phone,session);
+        return userService.sendCode(phone, session);
     }
 
     /**
      * 登录功能
+     *
      * @param loginForm 登录参数，包含手机号、验证码；或者手机号、密码
      */
     @PostMapping("/login")
-    public Result login(@RequestBody LoginFormDTO loginForm, HttpSession session){
+    public Result login(@RequestBody LoginFormDTO loginForm, HttpSession session) {
         // 1.校验手机号
-        return userService.login(loginForm,session);
+        return userService.login(loginForm, session);
     }
 
     /**
      * 登出功能
+     *
      * @return 无
      */
     @PostMapping("/logout")
-    public Result logout(HttpServletRequest request){
+    public Result logout(HttpServletRequest request) {
         return userService.logout(request);
     }
 
     @GetMapping("/me")
-    public Result me(){
+    public Result me() {
         UserDTO user = UserHolder.getUser();
+        // 记录一下注册时间
+        user.setCreatTime(String.valueOf(userService.getById(user.getId()).getCreateTime()));
         return Result.ok(user);
     }
 
     @GetMapping("/info/{id}")
-    public Result info(@PathVariable("id") Long userId){
+    public Result info(@PathVariable("id") Long userId) {
         // 查询详情
         UserInfo info = userInfoService.getById(userId);
         if (info == null) {
@@ -82,7 +86,7 @@ public class UserController {
 
     // UserController 根据id查询用户
     @GetMapping("/{id}")
-    public Result queryUserById(@PathVariable("id") Long userId){
+    public Result queryUserById(@PathVariable("id") Long userId) {
         // 查询详情
         User user = userService.getById(userId);
         if (user == null) {
@@ -95,17 +99,17 @@ public class UserController {
 
     /**
      * 进行签到
-     * */
+     */
     @PostMapping("/sign")
-    public Result sign(){
+    public Result sign() {
         return userService.sign();
     }
 
     /**
      * 统计连续签到的天数
-     * */
+     */
     @GetMapping("/sign/count")
-    public Result signCount(){
+    public Result signCount() {
         return userService.signCount();
     }
 
