@@ -66,7 +66,7 @@ public class UserController {
     public Result me() {
         UserDTO user = UserHolder.getUser();
         // 记录一下注册时间
-        user.setCreatTime(String.valueOf(userService.getById(user.getId()).getCreateTime()));
+        user.setCreateTime(String.valueOf(userService.getById(user.getId()).getCreateTime()));
         return Result.ok(user);
     }
 
